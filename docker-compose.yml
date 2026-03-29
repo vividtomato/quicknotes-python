@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      SQLITE_PATH: /data/notes.sqlite3
+      SECRET_KEY: ${SECRET_KEY:-docker-dev-change-this-secret}
+    volumes:
+      - note_data:/data
+
+volumes:
+  note_data:

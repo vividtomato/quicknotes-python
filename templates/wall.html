@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Стена — {{ user.username }}{% endblock %}
+{% block body %}
+<header class="top">
+  <h1>Заметки</h1>
+  <div class="user-bar">
+    <span class="muted">{{ user.username }}</span>
+    <form action="/logout" method="post" class="inline">
+      <button type="submit" class="linkish">Выйти</button>
+    </form>
+  </div>
+</header>
+
+<main>
+  <nav class="tag-filters" aria-label="Фильтр по меткам">
+    <span class="tag-filters-label muted">Метки:</span>
+    <a href="/" class="tag-pill{% if filter_tag_id is none %} is-active{% endif %}">Все</a>
+    {% for t in tags %}
+    <a href="/?tag={{ t.id }}" class="tag-pill{% if filter_tag_id == t.id %} is-active{% endif %}">{{ t.name }}</a>
+    {% endfor %}
+  </nav>
+
+  <section class="tag-manage" aria-label="Новая метка">
+    <form class="tag-add-form" action="/tags" method="post">
+      {% if filter_tag_id is not none %}
+      <input type="hidden" name="return_tag" value="{{ filter_tag_id }}">
+      {% endif %}
+      <label class="tag-add-label">
+        <span class="muted">Новая метка</span>
+        <input name="name" type="text" placeholder="например: дела" maxlength="128" required>
+      </label>
+      <button type="submit">Добавить метку</button>
+    </form>
+    {% if tags %}
+    <ul class="tag-delete-list">
+      {% for t in tags %}
+      <li>
+        <span class="tag-delete-name">{{ t.name }}</span>
+        <form action="/tags/{{ t.id }}/delete" method="post" class="inline" onsubmit="return confirm('Удалить эту метку? Заметки останутся без метки.');">
+          {% if filter_tag_id is not none %}
+          <input type="hidden" name="return_tag" value="{{ filter_tag_id }}">
+          {% endif %}
+          <button type="submit" class="tag-delete-btn">удалить</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+  <form class="composer" action="/notes" method="post">
+    {% if filter_tag_id is not none %}
+    <input type="hidden" name="return_tag" value="{{ filter_tag_id }}">
+    {% endif %}
+    <div class="composer-row">
+      <label for="tag_select" class="muted">Метка заметки</label>
+      <select id="tag_select" name="tag_id">
+        <option value="">— без метки —</option>
+        {% for t in tags %}
+        <option value="{{ t.id }}"{% if filter_tag_id == t.id %} selected{% endif %}>{{ t.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="composer-row">
+      <label for="new_tag" class="muted">Или новая метка (имеет приоритет над списком)</label>
+      <input id="new_tag" name="new_tag" type="text" placeholder="оставьте пустым, если выбрали сверху" maxlength="128" autocomplete="off">
+    </div>
+    <label class="sr-only" for="content">Текст заметки</label>
+    <textarea id="content" name="content" rows="4" placeholder="Что угодно — мысль, ссылка, набросок…" required autofocus></textarea>
+    <button type="submit">Добавить</button>
+  </form>
+
+  <section class="wall" aria-label="Все заметки">
+    {% if not notes %}
+    <p class="empty">Пока пусто. Напишите первую заметку выше.</p>
+    {% else %}
+    <ul class="notes">
+      {% for note in notes %}
+      <li class="note">
+        <div class="meta">
+          <div class="meta-left">
+            {% if note.tag %}
+            <span class="tag-badge">{{ note.tag.name }}</span>
+            {% else %}
+            <span class="tag-badge tag-badge-empty">без метки</span>
+            {% endif %}
+            <time datetime="{{ note.created_at.isoformat() }}">{{ note.created_at.strftime("%d.%m.%Y %H:%M") }}</time>
+          </div>
+          <div class="meta-actions">
+            <form class="note-tag-form" action="/notes/{{ note.id }}/tag" method="post">
+              {% if filter_tag_id is not none %}
+              <input type="hidden" name="return_tag" value="{{ filter_tag_id }}">
+              {% endif %}
+              <label class="sr-only" for="re-tag-{{ note.id }}">Сменить метку</label>
+              <select id="re-tag-{{ note.id }}" name="tag_id" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
+                <option value="">— нет —</option>
+                {% for t in tags %}
+                <option value="{{ t.id }}"{% if note.tag_id == t.id %} selected{% endif %}>{{ t.name }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <form action="/notes/{{ note.id }}/delete" method="post" class="inline" onsubmit="return confirm('Удалить эту заметку?');">
+              {% if filter_tag_id is not none %}
+              <input type="hidden" name="return_tag" value="{{ filter_tag_id }}">
+              {% endif %}
+              <button type="submit" class="linkish danger" aria-label="Удалить">×</button>
+            </form>
+          </div>
+        </div>
+        <div class="content">{{ note.content }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

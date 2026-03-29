@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <h1>Регистрация</h1>
+  {% if error %}
+  <p class="error" role="alert">{{ error }}</p>
+  {% endif %}
+  <form class="auth-form" method="post" action="/register">
+    <label>
+      Имя пользователя
+      <input name="username" autocomplete="username" required minlength="2">
+    </label>
+    <label>
+      Пароль
+      <input name="password" type="password" autocomplete="new-password" required minlength="4">
+    </label>
+    <button type="submit">Зарегистрироваться</button>
+  </form>
+  <p class="muted"><a href="/login">Уже есть аккаунт</a></p>
+</div>
+{% endblock %}
