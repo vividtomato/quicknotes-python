@@ -35,3 +35,14 @@ docker compose up --build
 ```
 
 Сайт: http://127.0.0.1:8000
+
+## Тесты
+
+Для тестов нужны dev-зависимости:
+
+```bash
+.venv/bin/pip install -r requirements-dev.txt
+.venv/bin/pytest
+```
+
+Тесты лежат в каталоге `tests/`. Перед импортом приложения в `conftest.py` задаётся отдельный файл SQLite (`.pytest.sqlite3` в корне проекта); перед каждым тестом схема пересоздаётся. Фикстуры: `client` (TestClient), `db` (сессия SQLAlchemy), `user` / `other_user`, `auth_client` (клиент с уже выполненным входом).
